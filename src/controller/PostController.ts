@@ -1,12 +1,15 @@
 import { Request, Response } from "express";
-
-
+import { PostBusiness } from "../business/PostBusiness";
 
 export class PostController{
-    constructor() {}
+    constructor(private postBusiness: PostBusiness) {}
 
     public getPosts = async (req: Request, res: Response) => {
         try {
+          const q = req.query.q as string | undefined
+          const output = await this.postBusiness.getPosts(q)
+
+          res.status(200).send(output)
             
         } catch (error) {
             console.log(error);
