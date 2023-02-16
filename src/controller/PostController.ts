@@ -1,5 +1,6 @@
-import { Request, Response } from "express";
-import { PostBusiness } from "../business/PostBusiness";
+import { Request, Response } from "express"
+import { PostBusiness } from "../business/PostBusiness"
+import { CreatePostInput } from "../dtos/postDTO"
 
 export class PostController{
     constructor(private postBusiness: PostBusiness) {}
@@ -12,13 +13,36 @@ export class PostController{
           res.status(200).send(output)
             
         } catch (error) {
-            console.log(error);
+            console.log(error)
 
       if (error instanceof Error) {
-        res.status(500).send(error.message);
+        res.status(500).send(error.message)
       } else {
-        res.status(500).send("Erro inesperado");
+        res.status(500).send("Erro inesperado")
       }
         }
+    }
+
+    public createPost = async (req: Request, res: Response) => {
+      try {
+
+        const input: CreatePostInput = {
+          content: req.body.content,
+          token: req.headers.authorization
+        }
+
+        const output = await this.postBusiness.createPost(input)
+
+        res.status(201).send(output)
+
+      } catch (error) {
+        console.log(error)
+
+            if (error instanceof Error) {
+              res.status(500).send(error.message)
+            } else {
+              res.status(500).send("Erro inesperado")
+            }
+      }
     }
 }  
