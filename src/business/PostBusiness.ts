@@ -95,4 +95,42 @@ export class PostBusiness {
 
     return output
   }
+  public editPost = async (postId: string, newContent: string, token: string) => {
+  const payload = this.tokenManager.getPayload(token);
+
+  if (payload === null) {
+    throw new BadRequestError("Usuário não logado!");
+  }
+
+  const post = await this.postDatabase.getPostById(postId);
+
+  if (!post) {
+    throw new BadRequestError("Post não encontrado!");
+  }
+
+  if (post.creator_id !== payload.id && payload.role !== USER_ROLES.ADMIN) {
+    throw new ForbiddenError("Usuário não autorizado!");
+  }
+
+  post.content = newContent;
+  post.updated_at = new Date().toISOString();
+
+  await this.postDatabase.updatePost(post);
+
+  const editedPost = new Post(
+    post.id,
+    post.content,
+    post.likes,
+    post.dislikes,
+    post.created_at,
+    post.updated_at,
+    {
+      id: post.creator_id,
+      name: post.creator_name
+    }
+  );
+
+  return editedPost.toBusinessModel();
+}
+
 }

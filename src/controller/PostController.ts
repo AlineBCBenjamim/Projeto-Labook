@@ -49,4 +49,24 @@ export class PostController{
             }
       }
     }
+    
+    public updatePost = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id;
+    const content = req.body.content;
+    const token = req.headers.authorization as string;
+
+    await this.postBusiness.updatePost(id, content, token);
+
+    res.status(200).send({ message: "Post atualizado com sucesso!" });
+  } catch (error) {
+    console.log(error);
+
+    if (error instanceof BaseError) {
+      res.status(error.statusCode).send(error.message);
+    } else {
+      res.status(500).send("Erro inesperado");
+    }
+  }
+}
 }  
