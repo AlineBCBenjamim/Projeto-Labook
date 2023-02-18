@@ -1,6 +1,7 @@
 import { PostDatabase } from "../database/PostDatabase"
-import { CreatePostInput, CreatePostOutput, GetPostsInput } from "../dtos/postDTO"
+import { CreatePostInput, CreatePostOutput, EditPostInputDTO, GetPostsInput } from "../dtos/postDTO"
 import { BadRequestError } from "../errors/BadRequestError"
+import { NotFoundError } from "../errors/NotFoundError"
 import { Post } from "../models/Post"
 import { IdGenerator } from "../services/IdGenerator"
 import { TokenManager } from "../services/TokenManager"
@@ -95,42 +96,49 @@ export class PostBusiness {
 
     return output
   }
-  public editPost = async (postId: string, newContent: string, token: string) => {
-  const payload = this.tokenManager.getPayload(token);
+  public editPost = async (input: EditPostInputDTO): Promise<void> => {
+    const { idToEdit, token, content } = input
 
-  if (payload === null) {
-    throw new BadRequestError("Usuário não logado!");
-  }
-
-  const post = await this.postDatabase.getPostById(postId);
-
-  if (!post) {
-    throw new BadRequestError("Post não encontrado!");
-  }
-
-  if (post.creator_id !== payload.id && payload.role !== USER_ROLES.ADMIN) {
-    throw new ForbiddenError("Usuário não autorizado!");
-  }
-
-  post.content = newContent;
-  post.updated_at = new Date().toISOString();
-
-  await this.postDatabase.updatePost(post);
-
-  const editedPost = new Post(
-    post.id,
-    post.content,
-    post.likes,
-    post.dislikes,
-    post.created_at,
-    post.updated_at,
-    {
-      id: post.creator_id,
-      name: post.creator_name
+    if (token === undefined) {
+      throw new BadRequestError("Token ausente!")
     }
-  );
 
-  return editedPost.toBusinessModel();
-}
+    const payload = this.tokenManager.getPayload(token)
+
+    if (payload === null) {
+      throw new BadRequestError("Token inválido")
+    }
+
+    if (typeof content !== "string") {
+      throw new BadRequestError("'content' deve ser string")
+    }
+
+    const postDB = await this.postDatabase.findById(idToEdit)
+
+    if (!postDB) {
+      throw new NotFoundError("'id' não encontrado")
+    }
+
+    if (postDB.creator_id !== payload.id) {
+      throw new BadRequestError("somente quem criou a playlist pode editá-la")
+    }
+
+    const post = new Post(
+      postDB.id,
+      postDB.content,
+      postDB.likes,
+      postDB.dislikes,
+      postDB.created_at,
+      postDB.updated_at,
+      payload
+    );
+
+    post.setContent(content)
+    post.setUpdatedAt(new Date().toISOString())
+
+    const updatePostDatabase = post.toDBModel()
+
+    await this.postDatabase.update(idToEdit, updatePostDatabase)
+  }
 
 }
