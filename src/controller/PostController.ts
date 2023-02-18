@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 import { PostBusiness } from "../business/PostBusiness"
-import { CreatePostInput, GetPostsInput } from "../dtos/postDTO"
+import { CreatePostInput, EditPostInputDTO, GetPostsInput } from "../dtos/postDTO"
 
 export class PostController{
     constructor(private postBusiness: PostBusiness) {}
@@ -50,23 +50,26 @@ export class PostController{
       }
     }
     
-    public updatePost = async (req: Request, res: Response) => {
-  try {
-    const id = req.params.id;
-    const content = req.body.content;
-    const token = req.headers.authorization as string;
+    public editPost = async (req: Request, res: Response) => {
+      try {
+        const input: EditPostInputDTO = {
+          idToEdit: req.params.id,
+          content: req.body.content,
+          token: req.headers.authorization as string
+        }
 
-    await this.postBusiness.updatePost(id, content, token);
+        await this.postBusiness.editPost(input)
 
-    res.status(200).send({ message: "Post atualizado com sucesso!" });
-  } catch (error) {
-    console.log(error);
+        res.status(200).end()
 
-    if (error instanceof BaseError) {
-      res.status(error.statusCode).send(error.message);
-    } else {
-      res.status(500).send("Erro inesperado");
+      } catch (error) {
+        console.log(error)
+
+        if (error instanceof Error) {
+          res.status(500).send(error.message)
+        } else {
+          res.status(500).send("Erro inesperado")
+        }
     }
-  }
-}
+    }
 }  
