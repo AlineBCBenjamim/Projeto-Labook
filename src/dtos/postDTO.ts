@@ -1,3 +1,5 @@
+import { Interface } from "readline"
+
 export interface CreatePostInput {
     content: string,
     token: string | undefined
@@ -14,5 +16,10 @@ export interface GetPostsInput{
 export interface EditPostInputDTO {
     idToEdit: string,
     content: string | undefined,
+    token: string | undefined
+}
+
+export interface DeletePostInput {
+    idToDelete: string,
     token: string | undefined
 }

@@ -18,3 +18,4 @@ const postController = new PostController(
 postRouter.get("/", postController.getPosts)
 postRouter.post("/create", postController.createPost)
 postRouter.put("/:id", postController.editPost)
+postRouter.delete("/:id", postController.deletePost)
