@@ -23,3 +23,8 @@ export interface DeletePostInput {
     idToDelete: string,
     token: string | undefined
 }
+export interface LikeOrDislikePostInput {
+    idToLikeOrDislike: string,
+    token: string | undefined,
+    like: number
+}
